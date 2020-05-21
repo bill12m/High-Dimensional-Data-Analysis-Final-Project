@@ -1,0 +1,259 @@
+---
+title: "HW5"
+author: "William Morris"
+date: "5/5/2020"
+output: pdf_document
+---
+# Main
+## 1
+```{r}
+load('HW5_BostonHousing.RDAT')
+library(knitr)
+```
+### a.
+```{r}
+#a
+Boston$chas<-NULL
+```
+
+### b.
+```{r}
+#b
+Boston_sample_covariance<-cov(Boston)
+kable(data.frame(Boston_sample_covariance))
+```
+
+### c.
+```{r}
+#c
+Boston_eigen<-eigen(Boston_sample_covariance)
+Boston_eigenvalues<-Boston_eigen$values
+Boston_eigenvectors<-Boston_eigen$vectors
+cat("Eigenvalues: ")
+kable(Boston_eigenvalues)
+cat("Eigenvectors: ")
+kable(Boston_eigenvectors)
+remove(Boston_eigen)
+```
+
+### d.
+From below, you can see the difference between $S$ and $V\Lambda V^T$. So, they are essentially equal, allowing for some float-level inaccuracies.
+```{r}
+#d
+Lambda<-diag(Boston_eigenvalues)
+v_lambda_v<-Boston_eigenvectors%*%Lambda%*%t(Boston_eigenvectors)
+kable(data.frame(Boston_sample_covariance - v_lambda_v))
+remove(Lambda,v_lambda_v)
+```
+
+### e.
+```{r}
+#e
+pca<-princomp(Boston)
+print(summary(pca))
+```
+
+### f.
+```{r}
+#f
+Boston_pca_variance<-(pca$sdev)^2
+kable(data.frame(Boston_pca_variance))
+```
+
+### g.
+```{r}
+#g
+plot(Boston_pca_variance,ylab='Eigenvalues',main='Eigenvalues of Sample Covariance Matrix')
+```
+
+### h.
+```{r}
+#h
+plot(pca$scores[,1],pca$scores[,2],xlab='Tax',ylab='Race',main='Taxes vs Race')
+```
+
+I don't know which version is more current, but the documentation for the Boston housing data on R Studio doesn't have a "race" component. Instead, it has a variable called "black" which attepmts to give the average number of black people in a house's neighborhood. That being said, there is definitely a negative correlation between taxes and the race of a neighborhood, with a distinct separation into 2 clusters, implying white and black neighborhoods.
+
+Also, I count 4 places where the data shows a significant positive correlation withing the larger graph. From this, I gather that some neighborhoods have become gentrified while keeping racial diversity. Although, this is not the majority.
+
+### i.
+```{r}
+#i
+biplot(pca,choices=c(1,2),col=c('gray25','red'),cex=.75,pc.biplot = T)
+```
+
+Taxes and race are the two most significant components. Everything else is jumbled up near the center, implying their variances are quite small. From the data below, we can see that the first two components account for 96% of the variance.
+
+```{r}
+pca.V<-pca$loadings
+pca.L <- pca$sdev^2
+{
+  p1 <- sapply(1:13,function(u) pca.L[u]/sum(pca.L))
+  p2 <- sapply(1:13,function(u) sum(pca.L[1:u])/sum(pca.L))
+  data.frame(Proportion_of_Total_Variance=p1,Percentage_Explained=p2)
+}
+
+```
+
+
+
+\newpage
+## 2
+```{r}
+library("readxl")
+hw5_wiki<-read_excel('HW5_wiki.xlsx')
+cat("Dimensions: ", dim(hw5_wiki))
+```
+
+### a
+```{r}
+hw5<-hw5_wiki[complete.cases(hw5_wiki),]
+cat("Dimensions: ", dim(hw5))
+```
+
+### b
+```{r}
+f <- factanal(hw5,factors=6)
+```
+
+### c
+
+Below are the loadings for the factor analysis. The 6 factors identified are common to all variables in the data. Each entry in the matrix shows the percent of that variable which is explained by a particular factor. I've muted all loadings which are less than 50% so that we can see the dominant factor for each variable. As you can see, some variables have empty rows, which means no factor accounted for more than 50% of its variance. That means these variables are unique from the data as a whole and can't be explained by the same common factors.
+
+```{r}
+print(f$loadings, digits=3, cutoff=0.5, sort=FALSE)
+```
+
+### d
+
+Below is the list of each variable's uniqueness, sorted in ascending order. If you check the most unique variables at the bottom, you'll see most of them are the same variables which had no dominant factor in part (c).
+
+Uniqueness measures the opposite of the loadings. That is, how much of a variable's variance is due to unique factors which the other variables don't have. The further down this list you go, the less likely it is that a variable shares anything in common with another variable.
+
+```{r}
+kable(data.frame(sort(f$uniquenesses)))
+```
+
+### e
+
+The code below is a function I found for organizing variabes according to their dominant factor and displaying it neatly.
+```{r}
+library(psych)
+library(GPArotation)
+f_psych <- fa(hw5,nfactors=6,covar=T,fm='pa')
+factor2cluster(f_psych,aslist = TRUE)
+```
+
+### f
+
+Factors 1 and 4 are the most significant. Factor 5 is the least significant. This can be seen in how many variables had them as their dominant factor above.
+
+\newpage
+## 3
+```{r}
+banknotes<-read.csv('HW5_banknotes.csv')
+banknotes$X<-NULL
+```
+
+### a
+```{r}
+km<-kmeans(banknotes, centers = 2)
+```
+
+### b
+
+Cluster 1
+```{r}
+rownames(banknotes[which(km$cluster==1),])
+```
+
+Cluster 2
+```{r}
+rownames(banknotes[which(km$cluster==2),])
+```
+
+### c
+
+Cluster for the 11th Banknote
+```{r}
+print(km$cluster[11])
+```
+
+### d
+
+Counterfeit Banknotes
+```{r}
+genuine<-km$cluster[51]
+counterfeit<-rownames(banknotes[which(km$cluster != genuine),])
+print(counterfeit)
+```
+
+
+\newpage
+
+#Graduate
+
+##1 
+
+### a
+
+In general $S=\frac{1}{n-1}X^TX.$ Also, by the Spectral Decomposition Theorem $S=V\Lambda V^T$ with $V$ being the matrix formed by the eigenvectors of $S$ and $\Lambda=\text{diag}\{\lambda_1,\dots,\lambda_p\}$ for the eigenvalues of $S$. Lastly, recall that $V^TV=I_p.$ Then,
+
+\begin{align*}
+S_Y&=\frac{1}{n-1}Y^TY\\
+&=\frac{1}{n-1}(XV)^T(XV)\text{, by the definition of Pricipal Components}\\
+&= \frac{1}{n-1}V^T(X^TX)V\\
+&=\frac{1}{n-1}(n-1)V^TS_XV\\
+&=V^T(V\Lambda V^T)V\\
+&=(V^TV)\Lambda(V^TV)\\
+&=\Lambda
+\end{align*}
+
+### b
+
+\begin{align*}
+trace(S_X)&=trace(VV^TS_X)\\
+&=trace(V^TS_XV)\\
+&=trace(\Lambda)\\
+&=trace(S_Y)
+\end{align*}
+
+
+
+##2
+Consider that $Y$ is a linear transformation of $X.$ Then, for $Y=AX+b$, $\Sigma_Y=A\Sigma_XA^T.$ Let $A=U^T$ and $b^T=[0\dots0].$
+\begin{align*}
+\Sigma_Y&=U^T\Sigma_XU^{TT}\\
+&=U^TUEU^TU\\
+&=E\\
+&=diag\{e_1,\dots,e_p\}
+\end{align*}
+
+### a
+$$Var(Y_j) = \sigma_{jj}\in\Sigma_Y = e_j,\ \forall j$$
+
+### b
+$$Cov(Y_i,Y_j) = \sigma_{ij}\in\Sigma_Y\  s.t.\ i\neq j = 0.$$
+
+##3
+Specifically, we need to assume $Var[F] = I,\ Var[U] = \Psi,\ Cov(F,U) = 0.$ Then,
+
+\begin{align*}
+\Sigma_X=Var[X]&=Var[QF+U]\\
+&=QVar[F]Q^T+Var[U]+2Cov(F,U)\\
+&=QIQ^T+\Psi+2\cdot0\\
+&=QQ^T+\Psi
+\end{align*}
+## 4
+
+\begin{align*}
+l(X,\bar{x},\Sigma)&=log L(X,\bar{x},\Sigma)\\
+&=\sum_{i=1}^n log\left[det(2\pi\Sigma)^{-\frac{1}{2}}exp\left\{-\frac{1}{2}(x-\bar{x})^T\Sigma^{-1}(x-\bar{x})\right\}\right]\\
+&=\sum_{i=1}^n log\left[det(2\pi\Sigma)^{-\frac{1}{2}}\right]+log\left[exp\left\{-\frac{1}{2}(x-\bar{x})^T\Sigma^{-1}(x-\bar{x})\right\}\right]\\
+&=-\frac{1}{2}nlog[det(2\pi\Sigma)]+\sum_{i=1}^n\left[-\frac{1}{2}(x-\bar{x}^T)\Sigma^{-1}(x-\bar{x})\right]\\
+&=-\frac{1}{2}\left\{nlog[det(2\pi\Sigma)]+\sum_{i=1}^n[(x-\bar{x})^T\Sigma^{-1}(x-\bar{x})]\right\}\\
+&=-\frac{1}{2}\left\{nlog[det(2\pi\Sigma)]+tr[(x-\bar{x})^T\Sigma^{-1}(x-\bar{x})]\right\}\\
+&=-\frac{1}{2}\left\{nlog[det(2\pi\Sigma)]+tr[\Sigma^{-1}(x-\bar{x})(x-\bar{x})^T]\right\}\\
+&=-\frac{1}{2}\left\{nlog[det(2\pi\Sigma)]+tr[\Sigma^{-1}(n-1)S]\right\}\\
+&=-\frac{1}{2}\left\{nlog[det(2\pi\Sigma)]+(n-1)tr[\Sigma^{-1}S]\right\}\\
+\end{align*}

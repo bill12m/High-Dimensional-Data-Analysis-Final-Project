@@ -1,0 +1,7 @@
+"0","hw5<-hw5_wiki[complete.cases(hw5_wiki),]"
+"0","cat(""Dimensions: "", dim(hw5))"
+"1","Dimensions: "
+"1"," "
+"1","703"
+"1"," "
+"1","26"

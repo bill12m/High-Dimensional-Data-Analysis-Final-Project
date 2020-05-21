@@ -1,0 +1,24 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1588701902135.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "7|4|99|8|\n151|4|192|0|\n195|4|221|0|\n222|3|236|0|\n246|4|258|12|\n",
+    "hash" : "3080013301",
+    "id" : "D3DEDC7B",
+    "lastKnownWriteTime" : 1588948894,
+    "last_content_update" : 1588948894934,
+    "path" : "~/Documents/Bill's Docs/R Studio/MATH_5090/HW5/HW5.Rmd",
+    "project_path" : "HW5.Rmd",
+    "properties" : {
+        "cursorPosition" : "128,35",
+        "docOutlineVisible" : "0",
+        "scrollLine" : "125",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
